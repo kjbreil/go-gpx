@@ -7,8 +7,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/ptrv/go-gpx"
 	"path/filepath"
+
+	"github.com/kjbreil/go-gpx"
 )
 
 func main() {
