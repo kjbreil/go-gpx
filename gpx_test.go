@@ -18,6 +18,17 @@ func init() {
 
 func TestParse(t *testing.T) {
 	var err error
+	// test error handling in ParseFile
+	g, err = ParseFile("testdata/nofile.gpx")
+	if err == nil {
+		t.Error("GPX ParseFile did not return an error")
+	}
+	// test error handling in Parse
+	g, err = ParseFile("gpx.go")
+	if err == nil {
+		t.Error("GPX Parse did not return an error")
+	}
+
 	g, err = ParseFile("testdata/file.gpx")
 
 	if err != nil {
