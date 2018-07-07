@@ -51,15 +51,21 @@ type Route struct {
 
 // Track is a GPX track
 type Track struct {
-	XMLName  xml.Name `xml:"trk"`
-	Name     string   `xml:"name,omitempty"`
-	Cmt      string   `xml:"cmt,omitempty"`
-	Desc     string   `xml:"desc,omitempty"`
-	Src      string   `xml:"src,omitempty"`
-	Links    []Link   `xml:"link"`
-	Number   int      `xml:"number,omitempty"`
-	Type     string   `xml:"type,omitempty"`
-	Segments []Trkseg `xml:"trkseg"`
+	XMLName  xml.Name       `xml:"trk"`
+	Name     string         `xml:"name,omitempty"`
+	Cmt      string         `xml:"cmt,omitempty"`
+	Desc     string         `xml:"desc,omitempty"`
+	Src      string         `xml:"src,omitempty"`
+	Links    []Link         `xml:"link"`
+	Number   int            `xml:"number,omitempty"`
+	Type     string         `xml:"type,omitempty"`
+	Segments []TrackSegment `xml:"trkseg"`
+}
+
+// TrackSegment is a GPX track segment
+type TrackSegment struct {
+	XMLName   xml.Name `xml:"trkseg"`
+	Waypoints `xml:"trkpt"`
 }
 
 // Waypoint is a GPX waypoint
@@ -87,12 +93,6 @@ type Waypoint struct {
 	Pdop         float64 `xml:"pdop,omitempty"`
 	AgeOfGpsData float64 `xml:"ageofgpsdata,omitempty"`
 	DGpsID       int     `xml:"dgpsid,omitempty"`
-}
-
-// Trkseg is a GPX track segment
-type Trkseg struct {
-	XMLName   xml.Name `xml:"trkseg"`
-	Waypoints `xml:"trkpt"`
 }
 
 // Link is a GPX link
@@ -451,7 +451,7 @@ func (trk *Track) Split(segNo, ptNo int) {
 		return
 	}
 
-	var newSegs []Trkseg
+	var newSegs []TrackSegment
 	for i := 0; i < lenSegs; i++ {
 		seg := trk.Segments[i]
 
@@ -471,7 +471,7 @@ func (trk *Track) Join(segNo, segNo2 int) {
 	if segNo >= lenSegs && segNo2 >= lenSegs {
 		return
 	}
-	var newSegs []Trkseg
+	var newSegs []TrackSegment
 	for i := 0; i < lenSegs; i++ {
 		seg := trk.Segments[i]
 		if i == segNo {
@@ -796,11 +796,11 @@ func (pt *Waypoint) MaxDilutionOfPrecision() float64 {
 
 // Split splits a GPX segment at point index i. Point i remains in
 // first part.
-func (seg *Trkseg) Split(i int) (*Trkseg, *Trkseg) {
-	return &Trkseg{Waypoints: seg.Waypoints[:i+1]}, &Trkseg{Waypoints: seg.Waypoints[i+1:]}
+func (seg *TrackSegment) Split(i int) (*TrackSegment, *TrackSegment) {
+	return &TrackSegment{Waypoints: seg.Waypoints[:i+1]}, &TrackSegment{Waypoints: seg.Waypoints[i+1:]}
 }
 
 // Join concatenates to GPX segments.
-func (seg *Trkseg) Join(seg2 *Trkseg) {
+func (seg *TrackSegment) Join(seg2 *TrackSegment) {
 	seg.Waypoints = append(seg.Waypoints, seg2.Waypoints...)
 }
