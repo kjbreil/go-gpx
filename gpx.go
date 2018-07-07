@@ -29,12 +29,25 @@ type GPX struct {
 	Creator      string    `xml:"creator,attr"`
 	Metadata     *Metadata `xml:"metadata,omitempty"`
 	Waypoints    Waypoints `xml:"wpt,omitempty"`
-	Routes       []Rte     `xml:"rte,omitempty"`
+	Routes       []Route   `xml:"rte,omitempty"`
 	Tracks       []Trk     `xml:"trk"`
 }
 
 // Waypoints is a collection of waypoints whether in a track, a route, or standalone.
 type Waypoints []Waypoint
+
+// Route is a GPX Route
+type Route struct {
+	XMLName   xml.Name `xml:"rte"`
+	Name      string   `xml:"name,omitempty"`
+	Cmt       string   `xml:"cmt,omitempty"`
+	Desc      string   `xml:"desc,omitempty"`
+	Src       string   `xml:"src,omitempty"`
+	Links     []Link   `xml:"link"`
+	Number    int      `xml:"number,omitempty"`
+	Type      string   `xml:"type,omitempty"`
+	Waypoints `xml:"rtept"`
+}
 
 // Waypoint is a GPX waypoint
 type Waypoint struct {
@@ -80,19 +93,6 @@ type Trk struct {
 	Number   int      `xml:"number,omitempty"`
 	Type     string   `xml:"type,omitempty"`
 	Segments []Trkseg `xml:"trkseg"`
-}
-
-// Rte is a GPX Route
-type Rte struct {
-	XMLName   xml.Name `xml:"rte"`
-	Name      string   `xml:"name,omitempty"`
-	Cmt       string   `xml:"cmt,omitempty"`
-	Desc      string   `xml:"desc,omitempty"`
-	Src       string   `xml:"src,omitempty"`
-	Links     []Link   `xml:"link"`
-	Number    int      `xml:"number,omitempty"`
-	Type      string   `xml:"type,omitempty"`
-	Waypoints `xml:"rtept"`
 }
 
 // Link is a GPX link
@@ -296,7 +296,7 @@ func (g *GPX) Clone() *GPX {
 	}
 
 	newgpx.Waypoints = make(Waypoints, len(g.Waypoints))
-	newgpx.Routes = make([]Rte, len(g.Routes))
+	newgpx.Routes = make([]Route, len(g.Routes))
 	newgpx.Tracks = make([]Trk, len(g.Tracks))
 	copy(newgpx.Waypoints, g.Waypoints)
 	copy(newgpx.Routes, g.Routes)
