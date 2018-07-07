@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var g *Gpx
+var g *GPX
 
 func init() {
 	log.Println("gpx test init")

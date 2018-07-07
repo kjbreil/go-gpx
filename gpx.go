@@ -129,8 +129,8 @@ type Metadata struct {
 	Bounds    *Bounds    `xml:"bounds"`
 }
 
-// Gpx represents the root of a GPX file
-type Gpx struct {
+// GPX represents the root of a GPX file
+type GPX struct {
 	XMLName      xml.Name  `xml:"gpx"`
 	XMLNs        string    `xml:"xmlns,attr"`
 	XMLNsXsi     string    `xml:"xmlns:xsi,attr,omitempty"`
@@ -172,7 +172,7 @@ type speedsAndDistances struct {
 /*==========================================================*/
 
 // Parse parses a GPX reader and return a Gpx object.
-func Parse(r io.Reader) (*Gpx, error) {
+func Parse(r io.Reader) (*GPX, error) {
 	g := NewGpx()
 	d := xml.NewDecoder(r)
 	d.CharsetReader = charset.NewReaderLabel
@@ -184,7 +184,7 @@ func Parse(r io.Reader) (*Gpx, error) {
 }
 
 // ParseFile reads a GPX file and parses it.
-func ParseFile(filepath string) (*Gpx, error) {
+func ParseFile(filepath string) (*GPX, error) {
 	f, err := os.Open(filepath)
 	if err != nil {
 		return nil, err
@@ -236,8 +236,8 @@ func (m *MovingData) merge(m2 *MovingData) {
 /*==========================================================*/
 
 // NewGpx creates and returns a new Gpx objects.
-func NewGpx() *Gpx {
-	gpx := new(Gpx)
+func NewGpx() *GPX {
+	gpx := new(GPX)
 	gpx.XMLNs = "http://www.topografix.com/GPX/1/1"
 	gpx.XMLNsXsi = "http://www.w3.org/2001/XMLSchema-instance"
 	gpx.XMLSchemaLoc = "http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd"
@@ -247,8 +247,8 @@ func NewGpx() *Gpx {
 }
 
 // Clone duplicates a Gpx object with deep copy.
-func (g *Gpx) Clone() *Gpx {
-	newgpx := new(Gpx)
+func (g *GPX) Clone() *GPX {
+	newgpx := new(GPX)
 	newgpx.XMLNs = g.XMLNs
 	newgpx.XMLNsXsi = g.XMLNsXsi
 	newgpx.XMLSchemaLoc = g.XMLSchemaLoc
@@ -310,7 +310,7 @@ func (g *Gpx) Clone() *Gpx {
 }
 
 // Length2D returns the 2D length of all tracks in a Gpx.
-func (g *Gpx) Length2D() float64 {
+func (g *GPX) Length2D() float64 {
 	var length2d float64
 	for _, trk := range g.Tracks {
 		length2d += trk.Length2D()
@@ -319,7 +319,7 @@ func (g *Gpx) Length2D() float64 {
 }
 
 // Length3D returns the 3D length of all tracks,
-func (g *Gpx) Length3D() float64 {
+func (g *GPX) Length3D() float64 {
 	var length3d float64
 	for _, trk := range g.Tracks {
 		length3d += trk.Length3D()
@@ -328,7 +328,7 @@ func (g *Gpx) Length3D() float64 {
 }
 
 // TimeBounds returns the time bounds of all tacks in a Gpx.
-func (g *Gpx) TimeBounds() (start, end time.Time) {
+func (g *GPX) TimeBounds() (start, end time.Time) {
 	if len(g.Tracks) == 0 {
 		return
 	}
@@ -338,7 +338,7 @@ func (g *Gpx) TimeBounds() (start, end time.Time) {
 }
 
 // Bounds returns the bounds of all tracks in a Gpx.
-func (g *Gpx) Bounds() *Bounds {
+func (g *GPX) Bounds() *Bounds {
 	b := maxBounds()
 	for _, trk := range g.Tracks {
 		b.merge(trk.Bounds())
@@ -347,7 +347,7 @@ func (g *Gpx) Bounds() *Bounds {
 }
 
 // MovingData returns the moving data for all tracks in a Gpx.
-func (g *Gpx) MovingData() *MovingData {
+func (g *GPX) MovingData() *MovingData {
 	m := &MovingData{}
 	for _, trk := range g.Tracks {
 		m.merge(trk.MovingData())
@@ -357,7 +357,7 @@ func (g *Gpx) MovingData() *MovingData {
 
 // Split splits the Gpx segment segNo in a given track trackNo at
 // pointNo.
-func (g *Gpx) Split(trackNo, segNo, pointNo int) {
+func (g *GPX) Split(trackNo, segNo, pointNo int) {
 	if trackNo >= len(g.Tracks) {
 		return
 	}
@@ -368,7 +368,7 @@ func (g *Gpx) Split(trackNo, segNo, pointNo int) {
 }
 
 // Duration returns the duration of all tracks in a Gpx in seconds.
-func (g *Gpx) Duration() float64 {
+func (g *GPX) Duration() float64 {
 	if len(g.Tracks) == 0 {
 		return 0.0
 	}
@@ -382,7 +382,7 @@ func (g *Gpx) Duration() float64 {
 
 // UphillDownhill returns uphill and downhill values for all tracks in a
 // Gpx.
-func (g *Gpx) UphillDownhill() (uphill, downhill float64) {
+func (g *GPX) UphillDownhill() (uphill, downhill float64) {
 	for _, trk := range g.Tracks {
 		up, do := trk.UphillDownhill()
 		uphill += up
@@ -392,7 +392,7 @@ func (g *Gpx) UphillDownhill() (uphill, downhill float64) {
 }
 
 // LocationAt returns a slice of Wpts for a certain time.
-func (g *Gpx) LocationAt(t time.Time) []Wpt {
+func (g *GPX) LocationAt(t time.Time) []Wpt {
 	var results []Wpt
 	for _, trk := range g.Tracks {
 		locs := trk.LocationAt(t)
@@ -402,7 +402,7 @@ func (g *Gpx) LocationAt(t time.Time) []Wpt {
 }
 
 // ToXML returns the marshalled Gpx object.
-func (g *Gpx) ToXML() []byte {
+func (g *GPX) ToXML() []byte {
 	var buffer bytes.Buffer
 	buffer.WriteString(xml.Header)
 	buffer.Write(toXML(g))
