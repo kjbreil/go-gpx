@@ -135,7 +135,7 @@ func distance(lat1, lon1, ele1, lat2, lon2, ele2 float64, threeD, haversine bool
 }
 
 // ElevationAngle calculates the elavation angle
-func ElevationAngle(loc1, loc2 *Wpt, radians bool) float64 {
+func ElevationAngle(loc1, loc2 *Waypoint, radians bool) float64 {
 	b := loc2.Ele - loc1.Ele
 	a := loc2.Distance2D(loc1)
 

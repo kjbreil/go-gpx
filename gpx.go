@@ -17,36 +17,27 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
-/*==========================================================*/
-
 const defaultStoppedSpeedThreshold = 1.0
 
-/*==========================================================*/
+// GPX represents the root of a GPX file
+type GPX struct {
+	XMLName      xml.Name  `xml:"gpx"`
+	XMLNs        string    `xml:"xmlns,attr"`
+	XMLNsXsi     string    `xml:"xmlns:xsi,attr,omitempty"`
+	XMLSchemaLoc string    `xml:"xsi:schemaLocation,attr,omitempty"`
+	Version      string    `xml:"version,attr"`
+	Creator      string    `xml:"creator,attr"`
+	Metadata     *Metadata `xml:"metadata,omitempty"`
+	Waypoints    Waypoints `xml:"wpt,omitempty"`
+	Routes       []Rte     `xml:"rte,omitempty"`
+	Tracks       []Trk     `xml:"trk"`
+}
 
 // Waypoints is a collection of waypoints whether in a track, a route, or standalone.
-type Waypoints []Wpt
+type Waypoints []Waypoint
 
-// Trkseg is a GPX track segment
-type Trkseg struct {
-	XMLName   xml.Name `xml:"trkseg"`
-	Waypoints `xml:"trkpt"`
-}
-
-// Trk is a GPX track
-type Trk struct {
-	XMLName  xml.Name `xml:"trk"`
-	Name     string   `xml:"name,omitempty"`
-	Cmt      string   `xml:"cmt,omitempty"`
-	Desc     string   `xml:"desc,omitempty"`
-	Src      string   `xml:"src,omitempty"`
-	Links    []Link   `xml:"link"`
-	Number   int      `xml:"number,omitempty"`
-	Type     string   `xml:"type,omitempty"`
-	Segments []Trkseg `xml:"trkseg"`
-}
-
-// Wpt is a GPX waypoint
-type Wpt struct {
+// Waypoint is a GPX waypoint
+type Waypoint struct {
 	Lat float64 `xml:"lat,attr"`
 	Lon float64 `xml:"lon,attr"`
 	// Position info
@@ -70,6 +61,25 @@ type Wpt struct {
 	Pdop         float64 `xml:"pdop,omitempty"`
 	AgeOfGpsData float64 `xml:"ageofgpsdata,omitempty"`
 	DGpsID       int     `xml:"dgpsid,omitempty"`
+}
+
+// Trkseg is a GPX track segment
+type Trkseg struct {
+	XMLName   xml.Name `xml:"trkseg"`
+	Waypoints `xml:"trkpt"`
+}
+
+// Trk is a GPX track
+type Trk struct {
+	XMLName  xml.Name `xml:"trk"`
+	Name     string   `xml:"name,omitempty"`
+	Cmt      string   `xml:"cmt,omitempty"`
+	Desc     string   `xml:"desc,omitempty"`
+	Src      string   `xml:"src,omitempty"`
+	Links    []Link   `xml:"link"`
+	Number   int      `xml:"number,omitempty"`
+	Type     string   `xml:"type,omitempty"`
+	Segments []Trkseg `xml:"trkseg"`
 }
 
 // Rte is a GPX Route
@@ -127,20 +137,6 @@ type Metadata struct {
 	Timestamp string     `xml:"time,omitempty"`
 	Keywords  string     `xml:"keywords,omitempty"`
 	Bounds    *Bounds    `xml:"bounds"`
-}
-
-// GPX represents the root of a GPX file
-type GPX struct {
-	XMLName      xml.Name  `xml:"gpx"`
-	XMLNs        string    `xml:"xmlns,attr"`
-	XMLNsXsi     string    `xml:"xmlns:xsi,attr,omitempty"`
-	XMLSchemaLoc string    `xml:"xsi:schemaLocation,attr,omitempty"`
-	Version      string    `xml:"version,attr"`
-	Creator      string    `xml:"creator,attr"`
-	Metadata     *Metadata `xml:"metadata,omitempty"`
-	Waypoints    Waypoints `xml:"wpt,omitempty"`
-	Routes       []Rte     `xml:"rte,omitempty"`
-	Tracks       []Trk     `xml:"trk"`
 }
 
 // Bounds is a GPX bounds tag
@@ -299,7 +295,7 @@ func (g *GPX) Clone() *GPX {
 		}
 	}
 
-	newgpx.Waypoints = make([]Wpt, len(g.Waypoints))
+	newgpx.Waypoints = make(Waypoints, len(g.Waypoints))
 	newgpx.Routes = make([]Rte, len(g.Routes))
 	newgpx.Tracks = make([]Trk, len(g.Tracks))
 	copy(newgpx.Waypoints, g.Waypoints)
@@ -392,8 +388,8 @@ func (g *GPX) UphillDownhill() (uphill, downhill float64) {
 }
 
 // LocationAt returns a slice of Wpts for a certain time.
-func (g *GPX) LocationAt(t time.Time) []Wpt {
-	var results []Wpt
+func (g *GPX) LocationAt(t time.Time) Waypoints {
+	var results Waypoints
 	for _, trk := range g.Tracks {
 		locs := trk.LocationAt(t)
 		results = append(results, locs...)
@@ -526,8 +522,8 @@ func (trk *Trk) UphillDownhill() (uphill, downhill float64) {
 }
 
 // LocationAt returns a slice of Wpt for a given time.
-func (trk *Trk) LocationAt(t time.Time) []Wpt {
-	var results []Wpt
+func (trk *Trk) LocationAt(t time.Time) Waypoints {
+	var results Waypoints
 	for _, seg := range trk.Segments {
 		loc := seg.LocationAt(t)
 		if loc != -1 {
@@ -595,8 +591,8 @@ func (w Waypoints) Speed(pointIdx int) float64 {
 
 	point := w[pointIdx]
 
-	var prevPt *Wpt
-	var nextPt *Wpt
+	var prevPt *Waypoint
+	var nextPt *Waypoint
 
 	havePrev := false
 	haveNext := false
@@ -741,7 +737,7 @@ func (w Waypoints) Center() (lat, lon float64) {
 /*==========================================================*/
 
 // Time returns a timestamp string as Time object.
-func (pt *Wpt) Time() time.Time {
+func (pt *Waypoint) Time() time.Time {
 	t, err := time.Parse(time.RFC3339, pt.Timestamp)
 	if err != nil {
 		return time.Time{}
@@ -750,7 +746,7 @@ func (pt *Wpt) Time() time.Time {
 }
 
 // TimeDiff returns the time difference of two GpxWpts in seconds.
-func (pt *Wpt) TimeDiff(pt2 *Wpt) float64 {
+func (pt *Waypoint) TimeDiff(pt2 *Waypoint) float64 {
 	t1 := pt.Time()
 	t2 := pt2.Time()
 
@@ -769,7 +765,7 @@ func (pt *Wpt) TimeDiff(pt2 *Wpt) float64 {
 }
 
 // SpeedBetween calculates the speed between two GpxWpts.
-func (pt *Wpt) SpeedBetween(pt2 *Wpt, threeD bool) float64 {
+func (pt *Waypoint) SpeedBetween(pt2 *Waypoint, threeD bool) float64 {
 	seconds := pt.TimeDiff(pt2)
 	var distLen float64
 	if threeD {
@@ -782,17 +778,17 @@ func (pt *Wpt) SpeedBetween(pt2 *Wpt, threeD bool) float64 {
 }
 
 // Distance2D returns the 2D distance of two GpxWpts.
-func (pt *Wpt) Distance2D(pt2 *Wpt) float64 {
+func (pt *Waypoint) Distance2D(pt2 *Waypoint) float64 {
 	return distance(pt.Lat, pt.Lon, 0.0, pt2.Lat, pt2.Lon, 0.0, false, false)
 }
 
 // Distance3D returns the 3D distance of two GpxWpts.
-func (pt *Wpt) Distance3D(pt2 *Wpt) float64 {
+func (pt *Waypoint) Distance3D(pt2 *Waypoint) float64 {
 	return distance(pt.Lat, pt.Lon, pt.Ele, pt2.Lat, pt2.Lon, pt2.Ele, true, false)
 }
 
 // MaxDilutionOfPrecision returns the dilution precision of a GpxWpt.
-func (pt *Wpt) MaxDilutionOfPrecision() float64 {
+func (pt *Waypoint) MaxDilutionOfPrecision() float64 {
 	return math.Max(pt.Hdop, math.Max(pt.Vdop, pt.Pdop))
 }
 

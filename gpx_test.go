@@ -228,9 +228,9 @@ func TestNewXml(t *testing.T) {
 	gpxTrack := Trk{}
 
 	gpxSegment := Trkseg{}
-	gpxSegment.Waypoints = append(gpxSegment.Waypoints, Wpt{Lat: 2.1234, Lon: 5.1234, Ele: 1234})
-	gpxSegment.Waypoints = append(gpxSegment.Waypoints, Wpt{Lat: 2.1233, Lon: 5.1235, Ele: 1235})
-	gpxSegment.Waypoints = append(gpxSegment.Waypoints, Wpt{Lat: 2.1235, Lon: 5.1236, Ele: 1236})
+	gpxSegment.Waypoints = append(gpxSegment.Waypoints, Waypoint{Lat: 2.1234, Lon: 5.1234, Ele: 1234})
+	gpxSegment.Waypoints = append(gpxSegment.Waypoints, Waypoint{Lat: 2.1233, Lon: 5.1235, Ele: 1235})
+	gpxSegment.Waypoints = append(gpxSegment.Waypoints, Waypoint{Lat: 2.1235, Lon: 5.1236, Ele: 1236})
 
 	gpxTrack.Segments = append(gpxTrack.Segments, gpxSegment)
 	gpx.Tracks = append(gpx.Tracks, gpxTrack)
