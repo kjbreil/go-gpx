@@ -225,7 +225,7 @@ func TestToXml(t *testing.T) {
 
 func TestNewXml(t *testing.T) {
 	gpx := NewGpx()
-	gpxTrack := Trk{}
+	gpxTrack := Track{}
 
 	gpxSegment := Trkseg{}
 	gpxSegment.Waypoints = append(gpxSegment.Waypoints, Waypoint{Lat: 2.1234, Lon: 5.1234, Ele: 1234})

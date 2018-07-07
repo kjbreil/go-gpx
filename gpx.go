@@ -30,7 +30,7 @@ type GPX struct {
 	Metadata     *Metadata `xml:"metadata,omitempty"`
 	Waypoints    Waypoints `xml:"wpt,omitempty"`
 	Routes       []Route   `xml:"rte,omitempty"`
-	Tracks       []Trk     `xml:"trk"`
+	Tracks       []Track   `xml:"trk"`
 }
 
 // Waypoints is a collection of waypoints whether in a track, a route, or standalone.
@@ -47,6 +47,19 @@ type Route struct {
 	Number    int      `xml:"number,omitempty"`
 	Type      string   `xml:"type,omitempty"`
 	Waypoints `xml:"rtept"`
+}
+
+// Track is a GPX track
+type Track struct {
+	XMLName  xml.Name `xml:"trk"`
+	Name     string   `xml:"name,omitempty"`
+	Cmt      string   `xml:"cmt,omitempty"`
+	Desc     string   `xml:"desc,omitempty"`
+	Src      string   `xml:"src,omitempty"`
+	Links    []Link   `xml:"link"`
+	Number   int      `xml:"number,omitempty"`
+	Type     string   `xml:"type,omitempty"`
+	Segments []Trkseg `xml:"trkseg"`
 }
 
 // Waypoint is a GPX waypoint
@@ -80,19 +93,6 @@ type Waypoint struct {
 type Trkseg struct {
 	XMLName   xml.Name `xml:"trkseg"`
 	Waypoints `xml:"trkpt"`
-}
-
-// Trk is a GPX track
-type Trk struct {
-	XMLName  xml.Name `xml:"trk"`
-	Name     string   `xml:"name,omitempty"`
-	Cmt      string   `xml:"cmt,omitempty"`
-	Desc     string   `xml:"desc,omitempty"`
-	Src      string   `xml:"src,omitempty"`
-	Links    []Link   `xml:"link"`
-	Number   int      `xml:"number,omitempty"`
-	Type     string   `xml:"type,omitempty"`
-	Segments []Trkseg `xml:"trkseg"`
 }
 
 // Link is a GPX link
@@ -297,7 +297,7 @@ func (g *GPX) Clone() *GPX {
 
 	newgpx.Waypoints = make(Waypoints, len(g.Waypoints))
 	newgpx.Routes = make([]Route, len(g.Routes))
-	newgpx.Tracks = make([]Trk, len(g.Tracks))
+	newgpx.Tracks = make([]Track, len(g.Tracks))
 	copy(newgpx.Waypoints, g.Waypoints)
 	copy(newgpx.Routes, g.Routes)
 	copy(newgpx.Tracks, g.Tracks)
@@ -408,7 +408,7 @@ func (g *GPX) ToXML() []byte {
 /*==========================================================*/
 
 // Length2D returns the 2D length of a GPX track.
-func (trk *Trk) Length2D() float64 {
+func (trk *Track) Length2D() float64 {
 	var l float64
 	for _, seg := range trk.Segments {
 		l += seg.Length2D()
@@ -417,7 +417,7 @@ func (trk *Trk) Length2D() float64 {
 }
 
 // Length3D returns the 3D length of a GPX track.
-func (trk *Trk) Length3D() float64 {
+func (trk *Track) Length3D() float64 {
 	var l float64
 	for _, seg := range trk.Segments {
 		l += seg.Length3D()
@@ -426,7 +426,7 @@ func (trk *Trk) Length3D() float64 {
 }
 
 // TimeBounds returns the time bounds of a GPX track.
-func (trk *Trk) TimeBounds() (start, end time.Time) {
+func (trk *Track) TimeBounds() (start, end time.Time) {
 	if len(trk.Segments) == 0 {
 		return
 	}
@@ -436,7 +436,7 @@ func (trk *Trk) TimeBounds() (start, end time.Time) {
 }
 
 // Bounds returns the bounds of a GPX track.
-func (trk *Trk) Bounds() *Bounds {
+func (trk *Track) Bounds() *Bounds {
 	b := maxBounds()
 	for _, seg := range trk.Segments {
 		b.merge(seg.Bounds())
@@ -445,7 +445,7 @@ func (trk *Trk) Bounds() *Bounds {
 }
 
 // Split splits a GPX segment at a point number ptNo in a GPX track.
-func (trk *Trk) Split(segNo, ptNo int) {
+func (trk *Track) Split(segNo, ptNo int) {
 	lenSegs := len(trk.Segments)
 	if segNo >= lenSegs {
 		return
@@ -466,7 +466,7 @@ func (trk *Trk) Split(segNo, ptNo int) {
 }
 
 // Join joins two GPX segments in a GPX track.
-func (trk *Trk) Join(segNo, segNo2 int) {
+func (trk *Track) Join(segNo, segNo2 int) {
 	lenSegs := len(trk.Segments)
 	if segNo >= lenSegs && segNo2 >= lenSegs {
 		return
@@ -489,12 +489,12 @@ func (trk *Trk) Join(segNo, segNo2 int) {
 
 // JoinNext joins a GPX segment with the next segment in the current GPX
 // track.
-func (trk *Trk) JoinNext(segNo int) {
+func (trk *Track) JoinNext(segNo int) {
 	trk.Join(segNo, segNo+1)
 }
 
 // MovingData returns the moving data of a GPX track.
-func (trk *Trk) MovingData() *MovingData {
+func (trk *Track) MovingData() *MovingData {
 	m := &MovingData{}
 	for _, seg := range trk.Segments {
 		m.merge(seg.MovingData())
@@ -503,7 +503,7 @@ func (trk *Trk) MovingData() *MovingData {
 }
 
 // Duration returns the duration of a GPX track.
-func (trk *Trk) Duration() float64 {
+func (trk *Track) Duration() float64 {
 	var result float64
 	for _, seg := range trk.Segments {
 		result += seg.Duration()
@@ -512,7 +512,7 @@ func (trk *Trk) Duration() float64 {
 }
 
 // UphillDownhill return the uphill and downhill values of a GPX track.
-func (trk *Trk) UphillDownhill() (uphill, downhill float64) {
+func (trk *Track) UphillDownhill() (uphill, downhill float64) {
 	for _, seg := range trk.Segments {
 		up, do := seg.UphillDownhill()
 		uphill += up
@@ -522,7 +522,7 @@ func (trk *Trk) UphillDownhill() (uphill, downhill float64) {
 }
 
 // LocationAt returns a slice of Wpt for a given time.
-func (trk *Trk) LocationAt(t time.Time) Waypoints {
+func (trk *Track) LocationAt(t time.Time) Waypoints {
 	var results Waypoints
 	for _, seg := range trk.Segments {
 		loc := seg.LocationAt(t)
